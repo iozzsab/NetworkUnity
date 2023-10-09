@@ -1,5 +1,9 @@
-﻿using UnityEngine;
+﻿using Unity.Collections;
+using Unity.Netcode;
+using UnityEngine;
 using Unity.Networking.Transport;
+using Unity.Networking.Transport.Utilities;
+using NetworkEvent = Unity.Networking.Transport.NetworkEvent;
 
 public class PlayerNetwork : NetworkBehaviour
 {
@@ -11,7 +15,7 @@ public class PlayerNetwork : NetworkBehaviour
         networkDriver = new NetworkDriver(new ReliableUtility.Parameters { windowSize = 32 });
 
         // Подключение к серверу
-        connection = networkDriver.Connect(new NetworkEndpoint());
+        connection = networkDriver.Connect(new NetworkEndPoint());
     }
 
     private void OnDestroy()
@@ -26,7 +30,7 @@ public class PlayerNetwork : NetworkBehaviour
         if (!connection.IsCreated)
             return;
 
-        Unity.Collections.DataStreamReader reader;
+        DataStreamReader reader;
         NetworkEvent.Type cmd;
 
         while ((cmd = connection.PopEvent(networkDriver, out reader)) != NetworkEvent.Type.Empty)
@@ -54,14 +58,14 @@ public class PlayerNetwork : NetworkBehaviour
     private void SendNameToServer(string playerName)
     {
         // Отправка имени на сервер
-        using (var writer = new Unity.Collections.DataStreamWriter(64, Allocator.Temp))
+        using (var writer = new DataStreamWriter(64, Allocator.Temp))
         {
             writer.WriteString(playerName);
             connection.Send(networkDriver, writer);
         }
     }
 
-    private void ProcessMessage(Unity.Collections.DataStreamReader reader)
+    private void ProcessMessage(DataStreamReader reader)
     {
         // Обработка сообщения от сервера
         string message = reader.ReadString();
