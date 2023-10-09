@@ -1,18 +1,26 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Networking.Transport;
+using Unity.Collections;
+using Unity.Netcode;
 
-public class PlayerInput : MonoBehaviour
+public class PlayerInput : NetworkBehaviour
 {
     public InputField nameInputField;
 
     private void Start()
     {
-        nameInputField.onValueChanged.AddListener(OnNameInputChange);
+        if (isLocalPlayer)
+        {
+            CmdSendNameToServer(nameInputField.text);
+        }
     }
 
-    private void OnNameInputChange(string name)
+    [Command]
+    private void CmdSendNameToServer(string playerName)
     {
-        PlayerNetwork.SendNameToServer(name);
+        Debug.Log("Player connected with name: " + playerName);
+
+        // Добавьте ваш код для сохранения имени игрока на сервере
     }
 }

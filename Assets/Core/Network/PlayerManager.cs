@@ -2,19 +2,36 @@
 using UnityEngine;
 using Unity.Networking.Transport;
 using Unity.Collections;
-using Unity.Networking.Transport.Utilities;
+using Unity.Netcode;
 
-public class PlayerManager : MonoBehaviour
+public class PlayerManager : NetworkBehaviour
 {
     private Dictionary<int, string> playerNames = new Dictionary<int, string>();
 
-    public void SetPlayerName(int connectionId, string name)
+    [Command]
+    private void CmdSendNameToServer(string playerName)
     {
-        playerNames[connectionId] = name;
+        int connectionId = connectionToClient.connectionId;
+
+        if (!playerNames.ContainsKey(connectionId))
+        {
+            playerNames[connectionId] = playerName;
+            Debug.Log("Player with connectionId " + connectionId + " has name: " + playerName);
+        }
+
+        // Добавьте ваш код для сохранения таблицы соответствия на сервере
     }
 
-    public string GetPlayerName(int connectionId)
+    [Command]
+    private void CmdSendMessageToServer(string message)
     {
-        return playerNames.ContainsKey(connectionId) ? playerNames[connectionId] : "Unknown";
+        int connectionId = connectionToClient.connectionId;
+
+        if (playerNames.TryGetValue(connectionId, out string playerName))
+        {
+            Debug.Log("Received message from " + playerName + ": " + message);
+        }
+
+        // Добавьте ваш код для обработки сообщения на сервере
     }
 }
